@@ -58,6 +58,7 @@ export class PauseScene extends Phaser.Scene {
   private openSettings(): void {
     if (this.busy) return;
     this.scene.launch('Settings', { from: 'pause' });
+    this.scene.bringToTop('Settings');
     this.scene.sleep();
   }
 

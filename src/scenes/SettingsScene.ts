@@ -258,7 +258,7 @@ export class SettingsScene extends Phaser.Scene {
       },
     });
     label(R, 525, 'settings.language');
-    new Segmented<Language>(this, RC + 65, 525, {
+    new Segmented<Language>(this, RC + 35, 525, {
       options: LANGUAGES.map((l) => ({ value: l, label: l === 'nl' ? 'Nederlands' : 'English' })),
       value: profile.language,
       width: 260,

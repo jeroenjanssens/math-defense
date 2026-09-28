@@ -112,6 +112,7 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
     this.answerText.setVisible(typing);
     this.caret.setVisible(typing);
     this.hint.setVisible(mode === 'keyboard');
+    this.feedback.setY(typing ? 322 : 262);
     this.drawAnswerBox(COLORS.panelBorder);
 
     if (mode === 'numpad') {
