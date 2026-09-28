@@ -98,6 +98,9 @@ export const nl: Record<TranslationKey, string> = {
   'hud.waveCleared': 'Golf verslagen!',
   'hud.bossWave': 'Baasgolf!',
   'hud.practice': 'Oefenen',
+  'hud.getReady': 'Maak je klaar!',
+  'hud.waveStartsIn': 'Golf {wave} begint over {s} s',
+  'hud.buildNow': 'Bouw of verbeter nu je torens',
   'hud.type': 'Typ je antwoord',
 
   'build.title': 'Bouw een toren',

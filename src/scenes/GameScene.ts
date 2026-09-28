@@ -76,6 +76,8 @@ export class GameScene extends Phaser.Scene {
   private frozen = false;
   private over = false;
   private sessionRecorded = false;
+  /** Whether the answer panel currently shows the problem (null: not decided yet). */
+  private waveRunning: boolean | null = null;
   private nextTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
@@ -88,6 +90,7 @@ export class GameScene extends Phaser.Scene {
     this.frozen = false;
     this.over = false;
     this.sessionRecorded = false;
+    this.waveRunning = null;
     this.score = 0;
   }
 
@@ -165,6 +168,7 @@ export class GameScene extends Phaser.Scene {
     else if (this.quiz.isPractice) showToast(this, t('hud.practice'), COLORS.purple, 120);
 
     this.nextProblem();
+    this.updateWaiting();
   }
 
   // ---------------------------------------------------------------- settings
@@ -210,9 +214,14 @@ export class GameScene extends Phaser.Scene {
     this.panel.setTimer(this.quiz.timeLeft);
   }
 
-  /** In the tutorial, problems can only be answered in the step that asks for it. */
+  /** Problems can only be answered during a wave, and in the tutorial only in the step that asks for it. */
   private get inputBlocked(): boolean {
-    return this.frozen || this.over || Boolean(this.tutorial && !this.tutorial.finished && this.tutorial.step !== 'answer');
+    return (
+      this.frozen ||
+      this.over ||
+      this.waves.phase !== 'running' ||
+      Boolean(this.tutorial && !this.tutorial.finished && this.tutorial.step !== 'answer')
+    );
   }
 
   private withInput(fn: () => void): void {
@@ -394,9 +403,10 @@ export class GameScene extends Phaser.Scene {
     if (this.over) return;
 
     this.world.update(dt);
+    this.updateWaiting();
     this.panel.setAccepting(this.quiz.accepting && !this.inputBlocked);
 
-    if (!this.tutorial?.waitingForNext) {
+    if (this.waves.phase === 'running' && !this.tutorial?.waitingForNext) {
       const timeout = this.quiz.tick(dt);
       if (timeout) this.handleOutcome(timeout, null);
       else if (this.quiz.accepting) this.panel.setTimer(this.quiz.timeLeft);
@@ -404,6 +414,26 @@ export class GameScene extends Phaser.Scene {
 
     const inBreak = this.waves.phase === 'break' && !this.isTutorial;
     this.hud.setWave(this.waves.waveNumber, this.waves.total, inBreak ? Math.ceil(this.waves.breakLeftMs / 1000) : null);
+  }
+
+  /** Hide the problem between waves; an unanswered problem comes back when the next wave starts. */
+  private updateWaiting(): void {
+    const running = this.waves.phase === 'running';
+    if (running === this.waveRunning) {
+      if (!running) this.panel.setWaiting({ wave: this.waves.waveNumber, seconds: Math.ceil(this.waves.breakLeftMs / 1000) });
+      return;
+    }
+    this.waveRunning = running;
+    if (running) {
+      this.panel.setWaiting(null);
+      if (this.quiz.accepting) {
+        this.quiz.resume();
+        this.panel.showProblem(this.quiz.problem, this.quiz.choices, this.quiz.allowsNegative);
+        this.panel.setTimer(this.quiz.timeLeft);
+      }
+    } else {
+      this.panel.setWaiting({ wave: this.waves.waveNumber, seconds: Math.ceil(this.waves.breakLeftMs / 1000) });
+    }
   }
 
   private onWaveStarted(): void {

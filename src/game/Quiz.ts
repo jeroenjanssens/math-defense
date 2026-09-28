@@ -95,6 +95,12 @@ export class Quiz {
     return this.problem;
   }
 
+  /** Give the current problem a fresh start (input and timer) after it was put on hold. */
+  resume(): void {
+    this.input = '';
+    this.elapsedMs = 0;
+  }
+
   /** Switch between typing and multiple choice for the current problem too. */
   setAnswerMode(mode: AnswerMode): void {
     this.options.answerMode = mode;

@@ -102,6 +102,9 @@ export const en = {
   'hud.bossWave': 'Boss wave!',
   'hud.practice': 'Practice',
   'hud.type': 'Type your answer',
+  'hud.getReady': 'Get ready!',
+  'hud.waveStartsIn': 'Wave {wave} starts in {s} s',
+  'hud.buildNow': 'Build or upgrade towers now',
 
   // Build menu
   'build.title': 'Build a tower',

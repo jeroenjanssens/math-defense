@@ -41,6 +41,8 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
   private problem?: Problem;
   private choices: number[] | null = null;
   private showingOutcome = false;
+  private readonly waitCover: Phaser.GameObjects.Container;
+  private readonly waitText: Phaser.GameObjects.Text;
 
   constructor(
     scene: Phaser.Scene,
@@ -72,6 +74,20 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
       .setOrigin(0.5);
 
     this.add([bg, this.card, this.practiceBadge, this.problemText, this.timerBar, this.answerBox, this.answerText, this.caret, this.feedback, this.hint]);
+
+    // Covers the problem and answer controls between waves.
+    const coverBg = scene.add
+      .rectangle(PANEL_X + 4, PANEL_Y, PANEL_W - 4, PANEL_H, COLORS.bgLight)
+      .setOrigin(0)
+      .setInteractive();
+    const title = scene.add.text(CX, 250, t('hud.getReady'), textStyle(44, COLORS.yellow, '700')).setOrigin(0.5);
+    this.waitText = scene.add.text(CX, 320, '', textStyle(26, COLORS.text, '600', { align: 'center' })).setOrigin(0.5);
+    const build = scene.add
+      .text(CX, 400, t('hud.buildNow'), textStyle(20, COLORS.textDim, '500', { align: 'center', wordWrap: { width: PANEL_W - 60 } }))
+      .setOrigin(0.5);
+    this.waitCover = scene.add.container(0, 0, [coverBg, title, this.waitText, build]).setVisible(false);
+    this.add(this.waitCover);
+    this.scene.tweens.add({ targets: title, scale: 1.06, duration: 700, yoyo: true, repeat: -1, ease: 'Sine.easeInOut' });
     this.drawCard(COLORS.panel, COLORS.panelBorder);
     this.drawAnswerBox(COLORS.panelBorder);
     this.setDepth(50);
@@ -154,7 +170,17 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
         this.add(b);
       }
     }
+    this.bringToTop(this.waitCover);
     if (this.problem) this.showProblem(this.problem, this.choices, true);
+  }
+
+  /**
+   * Between waves the problem is hidden behind a "get ready" message. Pass the wave that is coming
+   * and the seconds until it starts, or null while a wave is going on.
+   */
+  setWaiting(next: { wave: number; seconds: number } | null): void {
+    this.waitCover.setVisible(next !== null);
+    if (next) this.waitText.setText(t('hud.waveStartsIn', { wave: next.wave, s: next.seconds }));
   }
 
   get inputMode(): InputMode {
