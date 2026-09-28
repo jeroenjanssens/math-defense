@@ -17,34 +17,46 @@ The game title is **Math Defense** in both languages; all other UI text is in Du
 ```
 index.html
 vite.config.ts
+public/                    # PWA manifest and icons
 .github/workflows/deploy.yml
 src/
   main.ts                  # Phaser game config
-  config/                  # balance: waves, enemies, towers, difficulty presets
+  rotatePrompt.ts          # "turn your tablet" overlay in portrait
+  audio/sfx.ts             # sound hooks (silent for now)
+  config/
+    balance.ts             # waves, enemies, towers, economy, difficulty presets
+    map.ts                 # path and build spots
   i18n/
     nl.ts, en.ts           # string dictionaries
     i18n.ts                # t('key'), language switching, operator symbols
   math/                    # pure TS, no Phaser dependency, fully unit-tested
     types.ts               # Problem, Category, MathSettings
-    generators/            # one generator per category
+    generators.ts          # one generator per category
     sequencer.ts           # random / in-order / adaptive problem selection
     distractors.ts         # plausible wrong answers for multiple choice
+    expr.ts, rng.ts
   profiles/
+    profile.ts             # profile model and defaults
     profileStore.ts        # CRUD profiles in localStorage, export/import
     progress.ts            # per-fact statistics
+  state/session.ts         # current profile
+  game/                    # game logic used by GameScene
+    Quiz.ts                # current problem, input, streak, timer
+    WaveManager.ts         # waves and breaks
+    World.ts, Path.ts      # map, enemies, towers, projectiles, effects
+    Tutorial.ts            # guided first game
+  entities/  Enemy.ts, Tower.ts
   scenes/
     BootScene.ts           # generate shape textures
     ProfileScene.ts        # choose / create profile
     MenuScene.ts           # main menu
     SettingsScene.ts       # math + game settings
-    GameScene.ts           # map, enemies, towers, projectiles
-    UIScene.ts             # HUD + answer panel overlay
+    GameScene.ts           # the game, with HUD, answer panel and build menu
     PauseScene.ts
     GameOverScene.ts       # results of this session
     ProgressScene.ts       # progress tracking / parent overview
-  entities/  Enemy.ts, Tower.ts, Projectile.ts, Base.ts
-  ui/        Button.ts, Toggle.ts, Checkbox.ts, Slider.ts, NumPad.ts,
-             TextInput.ts, ChoiceButtons.ts, Modal.ts
+  ui/        Button.ts, Dialog.ts, NumPad.ts, HtmlInput.ts, Hud.ts,
+             AnswerPanel.ts, BuildMenu.ts, FullscreenButton.ts, theme.ts, ...
 tests/       math + profile tests
 ```
 
@@ -200,7 +212,7 @@ Viewable by both the child and the parent. A parent lock (**hold the button for 
   - ⏸ pause
   - ⛶ fullscreen
   - ↻ new game, with confirmation
-- **Answer panel** at the bottom centre: the problem, the input or choices, the timer bar, and the numpad when active.
+- **Answer panel** on the right side of the screen: the problem, the input or choices, the timer bar, and the numpad when active.
 
 **Pause menu:**
 - Resume

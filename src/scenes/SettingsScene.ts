@@ -281,6 +281,7 @@ export class SettingsScene extends Phaser.Scene {
         fontSize: 20,
         onClick: async () => {
           const ok = await confirmDialog(this, t('settings.resetConfirm', { name: profile.name }), {
+            hold: true,
             danger: true,
           });
           if (!ok) return;

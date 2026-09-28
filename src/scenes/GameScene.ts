@@ -41,6 +41,17 @@ export interface GameData {
 }
 
 const FIRST_BREAK_MS = 8000;
+
+/**
+ * The digit a key press stands for. Falls back to the physical key, so the number row works on
+ * AZERTY keyboards without Shift and the numeric keypad works with NumLock off.
+ */
+const digitOf = (event: KeyboardEvent): number | null => {
+  if (/^[0-9]$/.test(event.key)) return Number(event.key);
+  if (event.ctrlKey || event.metaKey || event.altKey) return null;
+  const match = /^(?:Digit|Numpad)([0-9])$/.exec(event.code);
+  return match ? Number(match[1]) : null;
+};
 const NEXT_AFTER_CORRECT_MS = 650;
 const NEXT_AFTER_WRONG_MS = 1900;
 
@@ -200,7 +211,13 @@ export class GameScene extends Phaser.Scene {
     return this.frozen || this.over || Boolean(this.tutorial?.waitingForNext && this.tutorial.step === 'path');
   }
 
+  /** Answering during the tutorial's intro step skips straight to the answer step instead of ignoring the input. */
+  private leaveTutorialIntro(): void {
+    if (this.tutorial?.waitingForNext && this.tutorial.step === 'path') this.tutorial.next();
+  }
+
   private withInput(fn: () => void): void {
+    this.leaveTutorialIntro();
     if (this.inputBlocked) return;
     fn();
     this.panel.setInput(this.quiz.input);
@@ -213,6 +230,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private choose(index: number): void {
+    this.leaveTutorialIntro();
     if (this.inputBlocked) return;
     const outcome = this.quiz.choose(index);
     if (outcome) this.handleOutcome(outcome, index);
@@ -268,12 +286,12 @@ export class GameScene extends Phaser.Scene {
       return;
     }
 
+    const digit = digitOf(event);
     if (this.quiz.choices) {
-      const n = Number(key);
-      if (Number.isInteger(n) && n >= 1 && n <= this.quiz.choices.length) this.choose(n - 1);
+      if (digit !== null && digit >= 1 && digit <= this.quiz.choices.length) this.choose(digit - 1);
       return;
     }
-    if (/^[0-9]$/.test(key)) this.withInput(() => this.quiz.typeDigit(Number(key)));
+    if (digit !== null) this.withInput(() => this.quiz.typeDigit(digit));
     else if (key === '-' || key === '_') this.withInput(() => this.quiz.toggleSign());
     else if (key === 'Backspace') {
       event.preventDefault();
