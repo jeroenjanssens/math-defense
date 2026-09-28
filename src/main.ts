@@ -12,6 +12,7 @@ import { PauseScene } from './scenes/PauseScene';
 import { ProfileScene } from './scenes/ProfileScene';
 import { ProgressScene } from './scenes/ProgressScene';
 import { SettingsScene } from './scenes/SettingsScene';
+import { GAME_ELEMENT_ID } from './ui/dom';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from './ui/theme';
 
 const loadFonts = async (): Promise<void> => {
@@ -27,7 +28,7 @@ const start = async (): Promise<void> => {
   initRotatePrompt();
   const game = new Phaser.Game({
     type: Phaser.AUTO,
-    parent: 'game',
+    parent: GAME_ELEMENT_ID,
     backgroundColor: COLORS.bg,
     antialias: true,
     scale: {
@@ -35,6 +36,7 @@ const start = async (): Promise<void> => {
       autoCenter: Phaser.Scale.CENTER_BOTH,
       width: GAME_WIDTH * RENDER_SCALE,
       height: GAME_HEIGHT * RENDER_SCALE,
+      fullscreenTarget: GAME_ELEMENT_ID,
     },
     input: { activePointers: 3 },
     scene: [

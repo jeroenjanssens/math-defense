@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { gameElement } from './dom';
 import { FONT, GAME_WIDTH } from './theme';
 
 /**
@@ -44,7 +45,7 @@ export class HtmlInput {
       if (e.key === 'Enter') options.onEnter?.();
     });
     el.addEventListener('keyup', (e) => e.stopPropagation());
-    document.body.append(el);
+    gameElement().append(el);
     this.el = el;
     this.position();
     scene.scale.on(Phaser.Scale.Events.RESIZE, this.onResize);

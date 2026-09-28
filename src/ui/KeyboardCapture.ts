@@ -1,3 +1,5 @@
+import { gameElement } from './dom';
+
 /**
  * An invisible text field that holds keyboard focus during a game. Browser extensions with
  * single-key shortcuts (such as Vimium) leave keys alone while a text field has focus, so answers
@@ -34,7 +36,7 @@ export class KeyboardCapture {
       if (text) onText(text);
     });
     el.addEventListener('blur', this.refocus);
-    document.body.append(el);
+    gameElement().append(el);
     this.el = el;
     this.focus();
   }
