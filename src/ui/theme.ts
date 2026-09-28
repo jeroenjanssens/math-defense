@@ -3,6 +3,18 @@ import type Phaser from 'phaser';
 export const GAME_WIDTH = 1280;
 export const GAME_HEIGHT = 720;
 
+/**
+ * The canvas renders at a multiple of the design size on high-DPI screens so text and shapes stay
+ * crisp. All game code uses design coordinates; each scene's camera zooms by this factor.
+ */
+export const RENDER_SCALE =
+  typeof window !== 'undefined' && (window.devicePixelRatio ?? 1) >= 1.5 ? 2 : 1;
+
+/** Make a scene's camera map design coordinates onto the (possibly larger) canvas. */
+export const setupCamera = (scene: Phaser.Scene): void => {
+  scene.cameras.main.setOrigin(0, 0).setZoom(RENDER_SCALE);
+};
+
 export const FONT = '"Fredoka", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif';
 
 export const COLORS = {
@@ -41,6 +53,7 @@ export const textStyle = (
   fontSize: `${size}px`,
   fontStyle: weight,
   color: hex(color),
+  resolution: RENDER_SCALE,
   ...extra,
 });
 

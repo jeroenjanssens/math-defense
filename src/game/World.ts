@@ -14,7 +14,7 @@ import {
 } from '../config/map';
 import { Enemy } from '../entities/Enemy';
 import { Tower } from '../entities/Tower';
-import { COLORS, shade } from '../ui/theme';
+import { COLORS, shade, textStyle } from '../ui/theme';
 import { Path } from './Path';
 
 interface Projectile {
@@ -411,14 +411,7 @@ export class World {
 
   floatText(x: number, y: number, text: string, color: number, size = 24): void {
     const label = this.scene.add
-      .text(x, y, text, {
-        fontFamily: '"Fredoka", sans-serif',
-        fontSize: `${size}px`,
-        fontStyle: '700',
-        color: `#${color.toString(16).padStart(6, '0')}`,
-        stroke: '#0b1026',
-        strokeThickness: 5,
-      })
+      .text(x, y, text, textStyle(size, color, '700', { stroke: '#0b1026', strokeThickness: 5 }))
       .setOrigin(0.5)
       .setDepth(30);
     this.scene.tweens.add({
