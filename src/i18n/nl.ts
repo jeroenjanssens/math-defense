@@ -17,6 +17,8 @@ export const nl: Record<TranslationKey, string> = {
 
   'profiles.title': 'Wie speelt er?',
   'profiles.new': 'Nieuwe speler',
+  'profiles.guest': 'Spelen als gast',
+  'profiles.guestName': 'Gast',
   'profiles.edit': 'Wijzigen',
   'profiles.name': 'Naam',
   'profiles.namePlaceholder': 'Je naam',
@@ -39,6 +41,7 @@ export const nl: Record<TranslationKey, string> = {
   'menu.hello': 'Hoi {name}!',
   'menu.highScore': 'Hoogste score: {score}',
   'menu.bestWave': 'Beste golf: {wave}',
+  'menu.guestNote': 'Je speelt als gast: je voortgang wordt niet bewaard',
 
   'settings.title': 'Instellingen',
   'settings.math': 'Sommen',

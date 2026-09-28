@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { getLanguage, LANGUAGES, t, type Language } from '../i18n/i18n';
 import { AVATAR_COLORS, AVATAR_SHAPES, createProfile, type Avatar, type Profile } from '../profiles/profile';
 import { profileStore } from '../profiles/profileStore';
-import { clearProfile, selectProfile, setDeviceLanguage } from '../state/session';
+import { clearProfile, playAsGuest, selectProfile, setDeviceLanguage } from '../state/session';
 import { drawAvatar } from '../ui/avatar';
 import { drawBackground } from '../ui/background';
 import { Button, Segmented } from '../ui/Button';
@@ -59,6 +59,19 @@ export class ProfileScene extends Phaser.Scene {
       color: COLORS.panelLight,
       fontSize: 20,
       onClick: () => void this.importProfiles(),
+    });
+    new Button(this, GAME_WIDTH - 150, GAME_HEIGHT - 44, {
+      width: 260,
+      height: 54,
+      label: t('profiles.guest'),
+      icon: 'play',
+      iconSize: 20,
+      color: COLORS.grey,
+      fontSize: 20,
+      onClick: () => {
+        playAsGuest();
+        this.scene.start('Menu');
+      },
     });
   }
 

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { t } from '../i18n/i18n';
-import { requireProfile } from '../state/session';
+import { isGuest, requireProfile } from '../state/session';
 import { drawAvatar } from '../ui/avatar';
 import { drawBackground } from '../ui/background';
 import { Button } from '../ui/Button';
@@ -29,7 +29,9 @@ export class MenuScene extends Phaser.Scene {
       .text(
         cx - 90,
         212,
-        `${t('menu.highScore', { score: profile.highScore })}   ·   ${t('menu.bestWave', { wave: profile.bestWave })}`,
+        isGuest()
+          ? t('menu.guestNote')
+          : `${t('menu.highScore', { score: profile.highScore })}   ·   ${t('menu.bestWave', { wave: profile.bestWave })}`,
         textStyle(20, COLORS.textDim, '500'),
       )
       .setOrigin(0, 0.5);

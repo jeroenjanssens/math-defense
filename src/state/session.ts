@@ -1,5 +1,5 @@
-import { browserLanguage, setLanguage, type Language } from '../i18n/i18n';
-import type { Profile } from '../profiles/profile';
+import { browserLanguage, getLanguage, setLanguage, t, type Language } from '../i18n/i18n';
+import { createProfile, type Profile } from '../profiles/profile';
 import { profileStore } from '../profiles/profileStore';
 
 const DEVICE_LANGUAGE_KEY = 'math-defense:language';
@@ -24,7 +24,19 @@ export const setDeviceLanguage = (lang: Language): void => {
   setLanguage(lang);
 };
 
+const GUEST_ID = 'guest';
+
 let currentId: string | null = null;
+/** The guest only lives in memory: nothing is written to storage. */
+let guest: Profile | null = null;
+
+export const playAsGuest = (): Profile => {
+  guest = { ...createProfile(t('profiles.guestName'), { shape: 'star', color: 0xffd60a }, getLanguage()), id: GUEST_ID };
+  currentId = GUEST_ID;
+  return guest;
+};
+
+export const isGuest = (): boolean => currentId === GUEST_ID;
 
 export const selectProfile = (id: string): Profile => {
   const profile = profileStore().get(id);
@@ -35,7 +47,10 @@ export const selectProfile = (id: string): Profile => {
   return profile;
 };
 
-export const currentProfile = (): Profile | undefined => (currentId ? profileStore().get(currentId) : undefined);
+export const currentProfile = (): Profile | undefined => {
+  if (currentId === GUEST_ID) return guest ?? undefined;
+  return currentId ? profileStore().get(currentId) : undefined;
+};
 
 /** The current profile; throws when none is selected (scenes after the profile screen). */
 export const requireProfile = (): Profile => {
@@ -44,9 +59,13 @@ export const requireProfile = (): Profile => {
   return profile;
 };
 
-export const saveProfile = (profile: Profile = requireProfile()): void => profileStore().update(profile);
+export const saveProfile = (profile: Profile = requireProfile()): void => {
+  if (profile.id === GUEST_ID) guest = profile;
+  else profileStore().update(profile);
+};
 
 export const clearProfile = (): void => {
   currentId = null;
+  guest = null;
   setLanguage(deviceLanguage());
 };

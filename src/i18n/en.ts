@@ -17,6 +17,8 @@ export const en = {
   // Profiles
   'profiles.title': "Who's playing?",
   'profiles.new': 'New player',
+  'profiles.guest': 'Play as guest',
+  'profiles.guestName': 'Guest',
   'profiles.edit': 'Edit',
   'profiles.name': 'Name',
   'profiles.namePlaceholder': 'Your name',
@@ -40,6 +42,7 @@ export const en = {
   'menu.hello': 'Hi {name}!',
   'menu.highScore': 'High score: {score}',
   'menu.bestWave': 'Best wave: {wave}',
+  'menu.guestNote': 'Playing as a guest: progress is not saved',
 
   // Settings
   'settings.title': 'Settings',

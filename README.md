@@ -20,7 +20,7 @@ Keys: `0`–`9`, `-`, Backspace, Enter · `1`–`4` in multiple-choice mode · `
 - Tables in order (1×4, 2×4, …) or random, with extra practice of weak facts
 - Optional answer timer, three difficulty levels, multiple choice mode
 - Dutch and English
-- Profiles with progress tracking: a 12×12 mastery grid, per-category accuracy and facts to practise
+- Profiles with progress tracking: a 12×12 mastery grid, per-category accuracy and facts to practise, or play as a guest without saving anything
 - A parent lock (hold for 3 seconds) before deleting a profile, resetting progress or importing data
 - A guided tutorial the first time you play
 - Works on laptops and tablets, and can be installed as an app from the browser
