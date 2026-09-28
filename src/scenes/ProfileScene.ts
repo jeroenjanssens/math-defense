@@ -7,6 +7,7 @@ import { drawAvatar } from '../ui/avatar';
 import { drawBackground } from '../ui/background';
 import { Button, Segmented } from '../ui/Button';
 import { alertDialog, confirmDialog, Overlay } from '../ui/Dialog';
+import { addFullscreenButton } from '../ui/FullscreenButton';
 import { HtmlInput } from '../ui/HtmlInput';
 import { COLORS, GAME_HEIGHT, GAME_WIDTH, setupCamera, shade, textStyle } from '../ui/theme';
 
@@ -29,7 +30,9 @@ export class ProfileScene extends Phaser.Scene {
     this.add.text(GAME_WIDTH / 2, 128, t('app.subtitle'), textStyle(24, COLORS.textDim, '500')).setOrigin(0.5);
     this.add.text(GAME_WIDTH / 2, 190, t('profiles.title'), textStyle(36, COLORS.text, '600')).setOrigin(0.5);
 
-    new Segmented<Language>(this, GAME_WIDTH - 110, 44, {
+    // Same corner as on the menu; the language switch sits just left of it.
+    const fullscreen = addFullscreenButton(this, GAME_WIDTH - 44, 44);
+    new Segmented<Language>(this, fullscreen ? GAME_WIDTH - 167 : GAME_WIDTH - 110, 44, {
       options: LANGUAGES.map((l) => ({ value: l, label: l.toUpperCase() })),
       value: getLanguage(),
       width: 170,
