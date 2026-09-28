@@ -151,8 +151,11 @@ export const WAVES: WaveSpec[] = [
 /** The tutorial is a single, slow wave; you can't lose. */
 export const TUTORIAL_WAVE: WaveSpec = { groups: [{ type: 'basic', count: 8, interval: 4.5 }] };
 
-/** Health grows by this fraction every wave. */
-export const HP_GROWTH_PER_WAVE = 0.18;
+/** Health grows by this factor every wave (compounding), so later waves need upgraded towers. */
+export const HP_GROWTH_PER_WAVE = 1.2;
+
+/** Health multiplier for the wave with this 0-based index. */
+export const waveHpMultiplier = (index: number): number => HP_GROWTH_PER_WAVE ** index;
 
 export interface DifficultySpec {
   speed: number;

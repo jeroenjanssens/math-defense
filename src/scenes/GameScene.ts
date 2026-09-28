@@ -3,13 +3,13 @@ import { playSfx } from '../audio/sfx';
 import {
   DIFFICULTIES,
   ECONOMY,
-  HP_GROWTH_PER_WAVE,
   POWER_SHOT_MULTIPLIER,
   STREAK_FOR_POWER_SHOT,
   TOWERS,
   TUTORIAL_SPEED,
   TUTORIAL_WAVE,
   WAVES,
+  waveHpMultiplier,
   type DifficultySpec,
   type EnemyType,
   type TowerType,
@@ -364,7 +364,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private spawn(kind: EnemyType): void {
-    const hp = this.isTutorial ? 1 : this.difficulty.hp * (1 + HP_GROWTH_PER_WAVE * this.waves.index);
+    const hp = this.isTutorial ? 1 : this.difficulty.hp * waveHpMultiplier(this.waves.index);
     const speed = this.isTutorial ? 1 : this.difficulty.speed;
     this.world.spawn(kind, hp, speed);
   }
