@@ -31,6 +31,7 @@ Progress is stored in the browser (localStorage) and can be exported and importe
 
 ```sh
 npm install
+just dev         # start the dev server and open the game in a browser
 npm run dev      # start the dev server
 npm test         # run the unit tests
 npm run build    # type-check and build to dist/
