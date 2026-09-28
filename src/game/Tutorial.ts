@@ -1,15 +1,18 @@
 import Phaser from 'phaser';
+import { STREAK_FOR_POWER_SHOT, TOWER_TYPES } from '../config/balance';
 import type { TranslationKey } from '../i18n/en';
 import { t } from '../i18n/i18n';
+import { drawTowerPreview } from '../ui/BuildMenu';
 import { Button } from '../ui/Button';
 import { COLORS, textStyle } from '../ui/theme';
 import type { PathPoint } from './Path';
 
-export type TutorialStep = 'path' | 'answer' | 'coins' | 'build' | 'streak' | 'buttons';
-const STEPS: TutorialStep[] = ['path', 'answer', 'coins', 'build', 'streak', 'buttons'];
+export type TutorialStep = 'path' | 'answer' | 'coins' | 'towers' | 'build' | 'upgrade' | 'streak' | 'buttons';
+const STEPS: TutorialStep[] = ['path', 'answer', 'coins', 'towers', 'build', 'upgrade', 'streak', 'buttons'];
+export type TutorialEvent = 'correct' | 'built' | 'upgraded';
 
 /** Steps that wait for the player to do something instead of pressing "Next". */
-const WAIT_FOR: Partial<Record<TutorialStep, 'correct' | 'built'>> = { answer: 'correct', build: 'built' };
+const WAIT_FOR: Partial<Record<TutorialStep, TutorialEvent>> = { answer: 'correct', build: 'built', upgrade: 'upgraded' };
 
 export interface TutorialHost {
   path: PathPoint[];
@@ -18,6 +21,8 @@ export interface TutorialHost {
   streakBounds: Phaser.Geom.Rectangle;
   buttonsBounds: Phaser.Geom.Rectangle;
   buildSpot: { x: number; y: number };
+  /** Where the tower to upgrade stands (the one just built). */
+  upgradeSpot: () => { x: number; y: number };
   onStep: (step: TutorialStep) => void;
   onDone: () => void;
   onSkip: () => void;
@@ -27,6 +32,9 @@ const BUBBLE_X = 450;
 const BUBBLE_Y = 652;
 const BUBBLE_W = 820;
 const BUBBLE_H = 118;
+const TEXT_SIZE = 26;
+const TOWER_CARD_W = 180;
+const TOWER_CARD_H = 130;
 
 /** Guided first game: highlights one thing at a time with a short explanation. */
 export class Tutorial {
@@ -35,6 +43,7 @@ export class Tutorial {
   private readonly highlight: Phaser.GameObjects.Graphics;
   private readonly text: Phaser.GameObjects.Text;
   private readonly nextButton: Button;
+  private readonly towersCard: Phaser.GameObjects.Container;
   private readonly pulse: Phaser.Tweens.Tween;
   finished = false;
 
@@ -55,7 +64,7 @@ export class Tutorial {
     const blocker = scene.add.rectangle(0, 0, BUBBLE_W, BUBBLE_H, 0, 0).setInteractive();
 
     this.text = scene.add
-      .text(-BUBBLE_W / 2 + 28, -12, '', textStyle(26, COLORS.text, '600', { wordWrap: { width: BUBBLE_W - 260 } }))
+      .text(-BUBBLE_W / 2 + 28, -12, '', textStyle(TEXT_SIZE, COLORS.text, '600', { wordWrap: { width: BUBBLE_W - 260 } }))
       .setOrigin(0, 0.5);
     this.nextButton = new Button(scene, BUBBLE_W / 2 - 110, -12, {
       width: 180,
@@ -71,6 +80,38 @@ export class Tutorial {
     skip.on('pointerup', () => this.skip());
 
     this.layer = scene.add.container(BUBBLE_X, BUBBLE_Y, [blocker, bubble, this.text, this.nextButton, skip]).setDepth(95);
+    this.towersCard = this.createTowersCard();
+  }
+
+  /** The three tower types with what they do, shown above the bubble in the "towers" step. */
+  private createTowersCard(): Phaser.GameObjects.Container {
+    const pad = 14;
+    const w = TOWER_TYPES.length * TOWER_CARD_W + (TOWER_TYPES.length + 1) * pad;
+    const h = TOWER_CARD_H + 2 * pad;
+    const bg = this.scene.add.graphics();
+    bg.fillStyle(0x000000, 0.4);
+    bg.fillRoundedRect(-w / 2 + 4, -h / 2 + 6, w, h, 22);
+    bg.fillStyle(COLORS.panel, 0.97);
+    bg.fillRoundedRect(-w / 2, -h / 2, w, h, 22);
+    bg.lineStyle(4, COLORS.yellow, 1);
+    bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 22);
+    const items: Phaser.GameObjects.GameObject[] = [bg];
+    TOWER_TYPES.forEach((kind, i) => {
+      const x = -w / 2 + pad + TOWER_CARD_W / 2 + i * (TOWER_CARD_W + pad);
+      const g = this.scene.add.graphics();
+      g.fillStyle(COLORS.panelLight, 1);
+      g.fillRoundedRect(x - TOWER_CARD_W / 2, -TOWER_CARD_H / 2, TOWER_CARD_W, TOWER_CARD_H, 16);
+      drawTowerPreview(g, kind, x, -30);
+      items.push(
+        g,
+        this.scene.add.text(x, 12, t(`build.${kind}`), textStyle(22, COLORS.text, '700')).setOrigin(0.5),
+        this.scene.add
+          .text(x, 42, t(`build.${kind}.desc`), textStyle(16, COLORS.textDim, '500', { align: 'center', wordWrap: { width: TOWER_CARD_W - 16 } }))
+          .setOrigin(0.5),
+      );
+    });
+    const top = BUBBLE_Y - BUBBLE_H / 2 - 16 - h / 2;
+    return this.scene.add.container(BUBBLE_X, top, items).setDepth(95).setVisible(false);
   }
 
   get step(): TutorialStep | null {
@@ -97,7 +138,8 @@ export class Tutorial {
       this.host.onDone();
       return;
     }
-    this.text.setText(t(`tutorial.${step}` as TranslationKey));
+    this.setText(t(`tutorial.${step}` as TranslationKey, { n: STREAK_FOR_POWER_SHOT }));
+    this.towersCard.setVisible(step === 'towers');
     const last = this.index === STEPS.length - 1;
     this.nextButton.setLabel(last ? t('tutorial.done') : t('tutorial.next'));
     this.nextButton.setVisible(!WAIT_FOR[step]);
@@ -107,9 +149,19 @@ export class Tutorial {
   }
 
   /** Something happened in the game; advances steps that wait for it. */
-  notify(event: 'correct' | 'built'): void {
+  notify(event: TutorialEvent): void {
     const step = this.step;
     if (step && WAIT_FOR[step] === event) this.next();
+  }
+
+  /** Longer explanations get a smaller font so they fit in the bubble. */
+  private setText(text: string): void {
+    let size = TEXT_SIZE;
+    this.text.setFontSize(size).setText(text);
+    while (this.text.height > BUBBLE_H - 16 && size > 18) {
+      size -= 2;
+      this.text.setFontSize(size);
+    }
   }
 
   skip(): void {
@@ -123,6 +175,7 @@ export class Tutorial {
     this.pulse.stop();
     this.highlight.destroy();
     this.layer.destroy();
+    this.towersCard.destroy();
   }
 
   destroy(): void {
@@ -161,8 +214,9 @@ export class Tutorial {
       case 'buttons':
         box(this.host.buttonsBounds);
         break;
-      case 'build': {
-        const { x, y } = this.host.buildSpot;
+      case 'build':
+      case 'upgrade': {
+        const { x, y } = step === 'build' ? this.host.buildSpot : this.host.upgradeSpot();
         g.strokeCircle(x, y, 40);
         g.fillStyle(COLORS.yellow, 1);
         g.fillTriangle(x - 14, y - 70, x + 14, y - 70, x, y - 48);

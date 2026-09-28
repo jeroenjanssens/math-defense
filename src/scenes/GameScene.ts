@@ -74,6 +74,8 @@ export class GameScene extends Phaser.Scene {
   private startedAt = 0;
   /** True while a dialog is open: the world and timers stand still. */
   private frozen = false;
+  /** Where the player last built (the tutorial points there when it asks for an upgrade). */
+  private lastBuiltSpot = START_TOWER_SPOT;
   private over = false;
   private sessionRecorded = false;
   /** Whether the answer panel currently shows the problem (null: not decided yet). */
@@ -88,6 +90,7 @@ export class GameScene extends Phaser.Scene {
     this.data0 = data ?? {};
     this.tutorial = null;
     this.frozen = false;
+    this.lastBuiltSpot = START_TOWER_SPOT;
     this.over = false;
     this.sessionRecorded = false;
     this.waveRunning = null;
@@ -335,9 +338,13 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onTowerClicked(tower: Tower): void {
-    // Upgrading or selling during the tutorial could spend the coins its build step hands out,
-    // leaving no way to build (and no way to earn coins, since answering is blocked then).
-    if (this.frozen || this.over || (this.tutorial && !this.tutorial.finished)) return;
+    if (this.frozen || this.over) return;
+    if (this.tutorial && !this.tutorial.finished) {
+      // Only the upgrade step uses towers: elsewhere, upgrading or selling could spend the coins the
+      // build step hands out, and answering (the only way to earn more) is blocked in that step.
+      if (this.tutorial.step !== 'upgrade') return;
+      if (tower.canUpgrade && this.coins < tower.upgradeCost) this.addCoins(tower.upgradeCost - this.coins);
+    }
     this.buildMenu.openTower(tower);
   }
 
@@ -347,6 +354,7 @@ export class GameScene extends Phaser.Scene {
     playSfx('build');
     this.addCoins(-cost);
     this.world.build(spot, kind);
+    this.lastBuiltSpot = spot;
     this.tutorial?.notify('built');
   }
 
@@ -357,6 +365,7 @@ export class GameScene extends Phaser.Scene {
     this.addCoins(-cost);
     tower.upgrade();
     this.world.burst(tower.x, tower.y, COLORS.green, 14);
+    this.tutorial?.notify('upgraded');
   }
 
   private sellTower(tower: Tower): void {
@@ -511,8 +520,13 @@ export class GameScene extends Phaser.Scene {
       streakBounds: this.hud.streakBounds,
       buttonsBounds: this.hud.buttonsBounds,
       buildSpot: this.world.spotPosition(TUTORIAL_BUILD_SPOT),
+      upgradeSpot: () => this.world.spotPosition(this.lastBuiltSpot),
       onStep: (step) => {
-        this.world.speedScale = step === 'path' ? 0 : TUTORIAL_SPEED;
+        // Monsters only walk while there is something to shoot, so the tutorial wave can't run out
+        // while the player reads, builds or upgrades.
+        this.world.speedScale = step === 'answer' ? TUTORIAL_SPEED : 0;
+        // The tower popup stays open after an upgrade; the next explanation needs the map clear.
+        if (step !== 'build' && step !== 'upgrade') this.buildMenu.close();
         if (step === 'build' && this.coins < TOWERS.blaster.cost) this.addCoins(TOWERS.blaster.cost - this.coins);
       },
       onDone: () => this.finishTutorial(),

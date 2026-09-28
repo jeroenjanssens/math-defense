@@ -119,6 +119,8 @@ export class Hud extends Phaser.GameObjects.Container {
   }
 
   setStreak(streak: number): void {
+    // The label grows once there is a count ("Streak 7"), so set it before placing the circles.
+    this.streakText.setText(streak >= STREAK_FOR_POWER_SHOT ? `${t('hud.streak')} ${streak}` : t('hud.streak'));
     const g = this.streakGfx;
     g.clear();
     const x0 = 660 + this.streakText.width + 14;
@@ -129,11 +131,6 @@ export class Hud extends Phaser.GameObjects.Container {
       g.fillCircle(x0 + i * 26, 30, 10);
       g.lineStyle(2, on ? COLORS.yellow : COLORS.panelBorder, 1);
       g.strokeCircle(x0 + i * 26, 30, 10);
-    }
-    if (streak >= STREAK_FOR_POWER_SHOT) {
-      this.streakText.setText(`${t('hud.streak')} ${streak}`);
-    } else {
-      this.streakText.setText(t('hud.streak'));
     }
   }
 

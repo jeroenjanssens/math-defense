@@ -20,7 +20,7 @@ const CARD_H = 150;
 const PAD = 12;
 
 /** Draws a small picture of a tower type for the build menu. */
-const drawTowerPreview = (g: Phaser.GameObjects.Graphics, kind: TowerType, x: number, y: number): void => {
+export const drawTowerPreview = (g: Phaser.GameObjects.Graphics, kind: TowerType, x: number, y: number): void => {
   const color = TOWERS[kind].color;
   g.fillStyle(shade(COLORS.panelLight, -0.1), 1);
   g.fillRoundedRect(x - 20, y - 20, 40, 40, 10);
@@ -126,7 +126,8 @@ export class BuildMenu {
       onClick: () => {
         if (!tower.canUpgrade || this.handlers.getCoins() < tower.upgradeCost) return;
         this.handlers.onUpgrade(tower);
-        this.openTower(tower);
+        // Show the new level, unless the upgrade handler closed the menu.
+        if (this.isOpen) this.openTower(tower);
       },
     });
     const upLabel = this.scene.add
