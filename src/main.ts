@@ -25,7 +25,7 @@ const loadFonts = async (): Promise<void> => {
 const start = async (): Promise<void> => {
   await loadFonts();
   initRotatePrompt();
-  new Phaser.Game({
+  const game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: 'game',
     backgroundColor: COLORS.bg,
@@ -48,6 +48,8 @@ const start = async (): Promise<void> => {
       GameOverScene,
     ],
   });
+  // Handy for debugging and automated checks during development.
+  if (import.meta.env.DEV) (window as unknown as { game: Phaser.Game }).game = game;
 };
 
 void start();

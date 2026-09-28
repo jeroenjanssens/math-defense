@@ -38,7 +38,7 @@ export class Button extends Phaser.GameObjects.Container {
       radius: Math.min(18, options.height / 2),
       iconSize: Math.round(options.height * 0.5),
       outline: false,
-      ...options,
+      ...(Object.fromEntries(Object.entries(options).filter(([, v]) => v !== undefined)) as ButtonOptions),
     };
     this.bg = scene.add.graphics();
     this.iconGfx = scene.add.graphics();

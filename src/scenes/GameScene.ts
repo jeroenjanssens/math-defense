@@ -137,11 +137,11 @@ export class GameScene extends Phaser.Scene {
       onSell: (tower) => this.sellTower(tower),
     });
 
-    this.input.keyboard?.on('keydown', this.onKey, this);
+    window.addEventListener('keydown', this.onKey);
     this.game.events.on(SETTINGS_CHANGED, this.applySettings, this);
     document.addEventListener('visibilitychange', this.onVisibility);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.input.keyboard?.off('keydown', this.onKey, this);
+      window.removeEventListener('keydown', this.onKey);
       this.game.events.off(SETTINGS_CHANGED, this.applySettings, this);
       document.removeEventListener('visibilitychange', this.onVisibility);
       this.tutorial?.destroy();
@@ -252,8 +252,8 @@ export class GameScene extends Phaser.Scene {
 
   // ---------------------------------------------------------------- keyboard
 
-  private onKey(event: KeyboardEvent): void {
-    if (this.frozen || this.over) return;
+  private onKey = (event: KeyboardEvent): void => {
+    if (!this.scene.isActive() || this.frozen || this.over || event.repeat) return;
     const key = event.key;
     if (key === 'Escape') {
       if (this.buildMenu.isOpen) this.buildMenu.close();
@@ -279,7 +279,7 @@ export class GameScene extends Phaser.Scene {
       event.preventDefault();
       this.withInput(() => this.quiz.backspace());
     } else if (key === 'Enter') this.submit();
-  }
+  };
 
   // ---------------------------------------------------------------- economy
 
