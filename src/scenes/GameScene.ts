@@ -335,7 +335,9 @@ export class GameScene extends Phaser.Scene {
   }
 
   private onTowerClicked(tower: Tower): void {
-    if (this.frozen || this.over) return;
+    // Upgrading or selling during the tutorial could spend the coins its build step hands out,
+    // leaving no way to build (and no way to earn coins, since answering is blocked then).
+    if (this.frozen || this.over || (this.tutorial && !this.tutorial.finished)) return;
     this.buildMenu.openTower(tower);
   }
 
