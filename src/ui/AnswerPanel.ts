@@ -40,6 +40,7 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
   private mode: InputMode = 'keyboard';
   private problem?: Problem;
   private choices: number[] | null = null;
+  private showingOutcome = false;
 
   constructor(
     scene: Phaser.Scene,
@@ -110,7 +111,7 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
 
     const typing = mode !== 'choice';
     this.answerText.setVisible(typing);
-    this.caret.setVisible(typing);
+    this.caret.setVisible(false);
     this.hint.setVisible(mode === 'keyboard');
     this.feedback.setY(typing ? 322 : 262);
     this.drawAnswerBox(COLORS.panelBorder);
@@ -168,6 +169,7 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
     this.problemText.setColor('#ffffff');
     this.drawCard(COLORS.panel, COLORS.panelBorder);
     this.drawAnswerBox(COLORS.panelBorder);
+    this.showingOutcome = false;
     this.feedback.setText('');
     this.setInput('');
     this.numpad?.setSignEnabled(allowNegative);
@@ -205,6 +207,7 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
 
   /** Show whether the answer was right; wrong answers reveal the correct one. */
   showOutcome(outcome: AnswerOutcome, chosenIndex: number | null): void {
+    this.showingOutcome = true;
     this.numpad?.setInputEnabled(false);
     this.okButton?.setEnabled(false);
     const answer = formatNumber(outcome.problem.answer);
@@ -243,7 +246,21 @@ export class AnswerPanel extends Phaser.GameObjects.Container {
   resetChoiceColors(): void {
     const colors = [COLORS.primary, COLORS.pink, COLORS.orange, COLORS.cyan];
     this.choiceButtons.forEach((b, i) => b.setColor(colors[i]));
-    this.caret.setVisible(this.mode !== 'choice');
+  }
+
+  /**
+   * Whether an answer can be given right now. The blinking cursor only shows then, and only when
+   * typing on a physical keyboard; the answer buttons are dimmed otherwise.
+   */
+  setAccepting(on: boolean): void {
+    this.caret.setVisible(on && this.mode === 'keyboard');
+    this.hint.setVisible(on && this.mode === 'keyboard');
+    if (this.showingOutcome) return;
+    if (this.okButton && this.okButton.isEnabled !== on) this.okButton.setEnabled(on);
+    this.numpad?.setInputEnabled(on);
+    this.choiceButtons.forEach((b) => {
+      if (b.isEnabled !== on) b.setEnabled(on);
+    });
   }
 
   /** Big flashy text over the panel. */

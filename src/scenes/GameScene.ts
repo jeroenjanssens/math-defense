@@ -30,6 +30,7 @@ import { BuildMenu } from '../ui/BuildMenu';
 import { confirmDialog, showToast } from '../ui/Dialog';
 import { toggleFullscreen } from '../ui/FullscreenButton';
 import { Hud } from '../ui/Hud';
+import { KeyboardCapture } from '../ui/KeyboardCapture';
 import { COLORS, isTouchDevice, setupCamera, textStyle } from '../ui/theme';
 import type { GameOverData } from './GameOverScene';
 import { SETTINGS_CHANGED } from './SettingsScene';
@@ -149,10 +150,12 @@ export class GameScene extends Phaser.Scene {
     });
 
     window.addEventListener('keydown', this.onKey);
+    const capture = isTouchDevice() ? null : new KeyboardCapture(this.onMissedText);
     this.game.events.on(SETTINGS_CHANGED, this.applySettings, this);
     document.addEventListener('visibilitychange', this.onVisibility);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       window.removeEventListener('keydown', this.onKey);
+      capture?.destroy();
       this.game.events.off(SETTINGS_CHANGED, this.applySettings, this);
       document.removeEventListener('visibilitychange', this.onVisibility);
       this.tutorial?.destroy();
@@ -207,17 +210,12 @@ export class GameScene extends Phaser.Scene {
     this.panel.setTimer(this.quiz.timeLeft);
   }
 
+  /** In the tutorial, problems can only be answered in the step that asks for it. */
   private get inputBlocked(): boolean {
-    return this.frozen || this.over || Boolean(this.tutorial?.waitingForNext && this.tutorial.step === 'path');
-  }
-
-  /** Answering during the tutorial's intro step skips straight to the answer step instead of ignoring the input. */
-  private leaveTutorialIntro(): void {
-    if (this.tutorial?.waitingForNext && this.tutorial.step === 'path') this.tutorial.next();
+    return this.frozen || this.over || Boolean(this.tutorial && !this.tutorial.finished && this.tutorial.step !== 'answer');
   }
 
   private withInput(fn: () => void): void {
-    this.leaveTutorialIntro();
     if (this.inputBlocked) return;
     fn();
     this.panel.setInput(this.quiz.input);
@@ -230,7 +228,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   private choose(index: number): void {
-    this.leaveTutorialIntro();
     if (this.inputBlocked) return;
     const outcome = this.quiz.choose(index);
     if (outcome) this.handleOutcome(outcome, index);
@@ -287,17 +284,32 @@ export class GameScene extends Phaser.Scene {
     }
 
     const digit = digitOf(event);
+    const handled = digit !== null || key === '-' || key === '_' || key === 'Backspace' || key === 'Enter' || key === ' ';
+    // Keep handled keys out of the keyboard capture field (and stop Space from scrolling).
+    if (handled) event.preventDefault();
+    if (digit !== null) this.typeDigit(digit);
+    else if (this.quiz.choices) return;
+    else if (key === '-' || key === '_') this.withInput(() => this.quiz.toggleSign());
+    else if (key === 'Backspace') this.withInput(() => this.quiz.backspace());
+    else if (key === 'Enter') this.submit();
+  };
+
+  /** Characters that reached the keyboard capture field without a keydown (see KeyboardCapture). */
+  private onMissedText = (text: string): void => {
+    if (!this.scene.isActive() || this.frozen || this.over) return;
+    for (const ch of text) {
+      if (/^[0-9]$/.test(ch)) this.typeDigit(Number(ch));
+      else if (ch === '-' && !this.quiz.choices) this.withInput(() => this.quiz.toggleSign());
+    }
+  };
+
+  private typeDigit(digit: number): void {
     if (this.quiz.choices) {
-      if (digit !== null && digit >= 1 && digit <= this.quiz.choices.length) this.choose(digit - 1);
+      if (digit >= 1 && digit <= this.quiz.choices.length) this.choose(digit - 1);
       return;
     }
-    if (digit !== null) this.withInput(() => this.quiz.typeDigit(digit));
-    else if (key === '-' || key === '_') this.withInput(() => this.quiz.toggleSign());
-    else if (key === 'Backspace') {
-      event.preventDefault();
-      this.withInput(() => this.quiz.backspace());
-    } else if (key === 'Enter') this.submit();
-  };
+    this.withInput(() => this.quiz.typeDigit(digit));
+  }
 
   // ---------------------------------------------------------------- economy
 
@@ -382,6 +394,7 @@ export class GameScene extends Phaser.Scene {
     if (this.over) return;
 
     this.world.update(dt);
+    this.panel.setAccepting(this.quiz.accepting && !this.inputBlocked);
 
     if (!this.tutorial?.waitingForNext) {
       const timeout = this.quiz.tick(dt);
