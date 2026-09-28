@@ -59,8 +59,16 @@ export const filletPoints = (points: Point[], radius: number, segments = 6): Poi
   return out;
 };
 
-/** Fillet radius as a fraction of the shape's radius. */
-const FILLET = 0.28;
+/** Fillet radius as a fraction of the shape's radius; the star's sharp tips need a much smaller one. */
+const FILLET: Record<ShapeKind, number> = {
+  circle: 0,
+  triangle: 0.28,
+  square: 0.28,
+  diamond: 0.28,
+  pentagon: 0.28,
+  hexagon: 0.28,
+  star: 0.06,
+};
 
 const shapePoints = (kind: ShapeKind, r: number): Phaser.Types.Math.Vector2Like[] | null => {
   switch (kind) {
@@ -100,7 +108,7 @@ export const drawShape = (
     if (stroke !== undefined) g.strokeCircle(x, y, r);
     return;
   }
-  const moved = filletPoints(points, r * FILLET).map((p) => ({ x: p.x + x, y: p.y + y }));
+  const moved = filletPoints(points, r * FILLET[kind]).map((p) => ({ x: p.x + x, y: p.y + y }));
   g.fillPoints(moved as Phaser.Math.Vector2[], true);
   if (stroke !== undefined) g.strokePoints(moved as Phaser.Math.Vector2[], true, true);
 };
