@@ -235,10 +235,11 @@ export class ProfileScene extends Phaser.Scene {
       this.scene.restart();
     };
 
+    // Editing: Delete, Cancel and Save side by side (200 + 180 + 200 wide, 20 apart).
     const bottom = top + 490;
     overlay.add(
-      new Button(this, cx + 150, bottom, {
-        width: 240,
+      new Button(this, cx + (existing ? 210 : 150), bottom, {
+        width: existing ? 200 : 240,
         height: 68,
         label: existing ? t('common.save') : t('profiles.create'),
         color: COLORS.green,
@@ -246,7 +247,7 @@ export class ProfileScene extends Phaser.Scene {
       }),
     );
     overlay.add(
-      new Button(this, cx - (existing ? 20 : 150), bottom, {
+      new Button(this, cx - (existing ? 0 : 150), bottom, {
         width: existing ? 180 : 240,
         height: 68,
         label: t('common.cancel'),
@@ -256,7 +257,7 @@ export class ProfileScene extends Phaser.Scene {
     );
     if (existing) {
       overlay.add(
-        new Button(this, cx - 250, bottom, {
+        new Button(this, cx - 210, bottom, {
           width: 200,
           height: 68,
           label: t('profiles.delete'),
