@@ -27,9 +27,9 @@ export class NumPad extends Phaser.GameObjects.Container {
     });
 
     const layout = [
-      [7, 8, 9],
-      [4, 5, 6],
       [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
     ];
     layout.forEach((row, r) =>
       row.forEach((digit, c) => {
