@@ -9,7 +9,7 @@ The game title is **Math Defense** in both languages; all other UI text is in Du
 - **Phaser 4.2.1**, **Vite 8.3.1**, **TypeScript**, **Vitest** for unit tests.
 - Fixed design resolution 1280×720, `Phaser.Scale.FIT` + auto-center, so it looks the same on laptop, tablet and fullscreen.
 - **Git + GitHub:** public repo `jeroenjanssens/math-defense` (https://github.com/jeroenjanssens/math-defense).
-- **Deployment:** **GitHub Pages** via a GitHub Actions workflow on push to `main`, at https://jeroenjanssens.github.io/math-defense/. The Vite `base` is `/math-defense/`.
+- **Deployment:** **GitHub Pages** via a GitHub Actions workflow on push to `main`, at https://math-defense.jeroenjanssens.com/. The Vite `base` is `/`.
 - **No backend:** all data (profiles, progress, settings) is stored in `localStorage`, with JSON export/import for backup and moving between devices.
 
 ### Project structure

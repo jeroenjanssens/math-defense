@@ -2,7 +2,7 @@
 
 A top-down tower defense game where your towers only fire when you answer a math problem correctly. Made for kids who want to practise their multiplication tables (and more).
 
-Play it at <https://jeroenjanssens.github.io/math-defense/>.
+Play it at <https://math-defense.jeroenjanssens.com/>.
 
 ## How to play
 

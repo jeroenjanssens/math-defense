@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/math-defense/',
+  base: '/',
   build: {
     chunkSizeWarningLimit: 2000,
   },
